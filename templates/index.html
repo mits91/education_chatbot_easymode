@@ -1,0 +1,114 @@
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Assistant Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        #chatbox {
+            width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user-message {
+            text-align: right;
+            color: blue;
+        }
+        .assistant-message {
+            text-align: left;
+            color: green;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px;
+            cursor: pointer;
+        }
+        #chatbox img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatbox">
+    <!-- Add the image at the top of the chatbox -->
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Chatbot Image">
+    
+    <div id="messages">
+        <div class="message assistant-message">Γεια σας! Είμαι ο επιστημονικός σας βοηθός. Κάντε μου μια ερώτηση.</div>
+    </div>
+    <input type="text" id="userInput" placeholder="Κάντε την ερώτησή σας εδώ...">
+    <input type="submit" value="Στείλτε" onclick="sendMessage()">
+</div>
+
+<script>
+    async function sendMessage() {
+        let userInput = document.getElementById("userInput").value;
+        if (!userInput) return;
+
+        // Add user message to chatbox
+        addMessage(userInput, "user-message");
+
+        // Add loading message
+        let loadingMessage = addMessage("Loading...", "assistant-message");
+
+        // Send request to backend
+        const response = await fetch('/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: userInput })
+        });
+
+        const data = await response.json();
+
+        // Remove loading message
+        loadingMessage.remove();
+
+        // Add assistant message to chatbox
+        addMessage(data.response, "assistant-message");
+
+        // Clear the input field
+        document.getElementById("userInput").value = '';
+    }
+
+    function addMessage(message, className) {
+        const messageBox = document.createElement("div");
+        messageBox.className = `message ${className}`;
+        messageBox.textContent = message;
+
+        document.getElementById("messages").appendChild(messageBox);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+        return messageBox;
+    }
+</script>
+
+</body>
+</html>
